@@ -1,0 +1,39 @@
+name: Unzip Large Archive Automatically
+
+on:
+  workflow_dispatch: # Allows you to trigger this manually from your phone anytime
+
+jobs:
+  extract-and-commit:
+    runs-on: ubuntu-latest # Uses a fast, free cloud Linux runner
+
+    steps:
+    # 1. Downloads your repository files to the cloud machine
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    # 2. Extracts your large zip archive
+    - name: Unzip File
+      run: |
+        # Creates a target folder so your root repository stays clean
+        mkdir -p extracted_files
+        
+        # Unzips your file into that folder. 
+        # ⚠️ CHANGE 'your_file_name.zip' TO YOUR EXACT ZIP FILE NAME BELOW:
+        unzip your_file_name.zip -d extracted_files/
+
+    # 3. Commits and pushes the hundreds/thousands of unzipped files back to your repo
+    - name: Commit and Push Extracted Files
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@://github.com"
+        
+        git add extracted_files/
+        
+        # Checks if there are actual files to commit so the script doesn't crash if empty
+        if [ -n "$(git status --porcelain)" ]; then
+          git commit -m "Automated unzip of large archive via GitHub Actions"
+          git push
+        else
+          echo "No new files were found to extract."
+        fi
